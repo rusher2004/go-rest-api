@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	new := newstore.NewDataStore("some client", "some db connection")
+	new := newstore.NewDataStore("some api client", "some db connection")
 	old := oldstore.NewDataStore("some lambda client")
 	s := server.NewServer(new, old)
 
-	log.Fatal(http.ListenAndServe(":80", s.Router()))
+	log.Fatal(http.ListenAndServe(":8080", s.Router()))
 }

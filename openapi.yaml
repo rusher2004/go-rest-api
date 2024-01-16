@@ -1,11 +1,20 @@
 openapi: 3.0.3
+
 info:
   title: Demo Server
   version: 0.1.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
 tags:
   - name: User
+
 paths:
   /user:
+    parameters:
+      - $ref: "#/components/parameters/processor"
     get:
       operationId: getUserList
       responses:
@@ -48,6 +57,7 @@ paths:
 
   /user/{id}:
     parameters:
+      - $ref: "#/components/parameters/processor"
       - description: User ID
         in: path
         name: id
@@ -92,6 +102,17 @@ paths:
         - User
 
 components:
+  parameters:
+    processor:
+      in: query
+      name: proc
+      schema:
+        type: string
+        description: Processor name
+        enum:
+          - new
+          - old
+
   schemas:
     UserObject:
       type: object

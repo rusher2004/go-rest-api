@@ -13,6 +13,7 @@ import (
 
 type mockUserGetter struct {
 	server.DataStore
+
 	user server.User
 	err  error
 }
@@ -23,6 +24,8 @@ func (m mockUserGetter) GetUser(context.Context, server.GetUserInput) (server.Us
 
 func TestGetUser(t *testing.T) {
 	a := assert.New(t)
+
+	var userUUID = uuid.MustParse("07a86fdf-fe39-45ea-af57-e4aa9e8068b0")
 
 	tests := []struct {
 		exp        string
@@ -35,12 +38,12 @@ func TestGetUser(t *testing.T) {
 		{
 			name:       "User is returned - new procesor",
 			exp:        `{"data":{"email":"robert@test.com","id":"07a86fdf-fe39-45ea-af57-e4aa9e8068b0","name":"Robert"}}`,
-			path:       "/user/07a86fdf-fe39-45ea-af57-e4aa9e8068b0?proc=new",
+			path:       "/user/" + userUUID.String() + "?proc=new",
 			statusCode: 200,
 			store: mockUserGetter{
 				user: server.User{
 					Email: "robert@test.com",
-					ID:    uuid.MustParse("07a86fdf-fe39-45ea-af57-e4aa9e8068b0"),
+					ID:    userUUID,
 					Name:  "Robert",
 				},
 			},
@@ -48,12 +51,12 @@ func TestGetUser(t *testing.T) {
 		{
 			name:       "User is returned - old procesor",
 			exp:        `{"data":{"email":"robert@test.com","id":"07a86fdf-fe39-45ea-af57-e4aa9e8068b0","name":"Robert"}}`,
-			path:       "/user/07a86fdf-fe39-45ea-af57-e4aa9e8068b0?proc=old",
+			path:       "/user/" + userUUID.String() + "?proc=old",
 			statusCode: 200,
 			store: mockUserGetter{
 				user: server.User{
 					Email: "robert@test.com",
-					ID:    uuid.MustParse("07a86fdf-fe39-45ea-af57-e4aa9e8068b0"),
+					ID:    userUUID,
 					Name:  "Robert",
 				},
 			},
@@ -62,7 +65,7 @@ func TestGetUser(t *testing.T) {
 		{
 			name:       "User not found",
 			exp:        `{"error":"User not found"}`,
-			path:       "/user/07a86fdf-fe39-45ea-af57-e4aa9e8068b0?proc=new",
+			path:       "/user/" + userUUID.String() + "?proc=new",
 			statusCode: 404,
 			store: mockUserGetter{
 				err: server.UserNotFound,
