@@ -1,0 +1,114 @@
+openapi: 3.0.3
+info:
+  title: Demo Server
+  version: 0.1.0
+tags:
+  - name: User
+paths:
+  /user:
+    get:
+      operationId: getUserList
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserObject"
+          description: GET User list response
+      tags:
+        - User
+
+    post:
+      operationId: postUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdatePayload"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserObject"
+          description: POST User object response
+          links:
+            GetUserByID:
+              operationId: getUserByID
+              parameters:
+                id: "$response.body#/id"
+              description: \
+                The `id` value returned in the response as the `id` parameter in
+                `GET /user/{id}`
+      tags:
+        - User
+
+  /user/{id}:
+    parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      operationId: deleteUserByID
+      responses:
+        "204":
+          description: "User succussfully deleted"
+      tags:
+        - User
+    get:
+      operationId: getUserByID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserObject"
+          description: GET User object response
+      tags:
+        - User
+    put:
+      operationId: putUserByID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdatePayload"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserObject"
+          description: PUT User object response
+      tags:
+        - User
+
+components:
+  schemas:
+    UserObject:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    UserUpdatePayload:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
