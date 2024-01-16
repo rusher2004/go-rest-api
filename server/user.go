@@ -24,8 +24,8 @@ type (
 	}
 
 	PutUserInput struct {
-		ID    uuid.UUID
 		Email string `json:"email,omitempty"`
+		ID    uuid.UUID
 		Name  string `json:"name,omitempty"`
 	}
 
@@ -95,7 +95,7 @@ func (s *Server) handlePostUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond(w, r, out, nil, http.StatusOK)
+	respond(w, r, out, nil, http.StatusCreated)
 }
 
 func (s *Server) handlePutUser(w http.ResponseWriter, r *http.Request) {
