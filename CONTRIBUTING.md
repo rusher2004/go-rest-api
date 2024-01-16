@@ -6,7 +6,7 @@ To add an endpoint to the server, make the following updates:
 
 1. Update the [OpenAPI spec file](./openapi.yaml). Every operation must include expected input parameters and response schemas.
 2. Create the handler function to be called by the HTTP router
-   - This is a standard [http.handler](https://pkg.go.dev/net/http#Handler.ServeHTTP) func, implemented as a method on the `Server` struct. It will validate user input and call the relevant data service method to handle the business logic of the request.
+   - This is a standard [http.handler](https://pkg.go.dev/net/http#Handler.ServeHTTP) func, implemented as a method on the `Server` struct. It will validate user input and call the relevant data store method to handle the business logic of the request.
 3. Server Route
    - Update the [server routes](./server/server.go?plain=1#L70) in `(s *Server) Routes()` to include the path to the new endpoint, with the new handler func assigned.
    - Be sure to properly apply any necessary middleware here.
