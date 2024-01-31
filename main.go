@@ -4,15 +4,23 @@ import (
 	"log"
 	"net/http"
 
-	newstore "github.com/rusher2004/go-rest-api/new-store"
-	oldstore "github.com/rusher2004/go-rest-api/old-store"
+	"github.com/rusher2004/go-rest-api/datastore"
+	"github.com/rusher2004/go-rest-api/db"
 	"github.com/rusher2004/go-rest-api/server"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	new := newstore.NewDataStore("some api client", "some db connection")
-	old := oldstore.NewDataStore("some lambda client")
-	s := server.NewServer(new, old)
+	db, err := db.NewDB("postgres", "some dsn")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
+	d := datastore.NewDataStore("some api client", &db)
+	s := server.NewServer(d)
+
+	log.Println("starting server on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", s.Router()))
 }

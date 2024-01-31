@@ -36,27 +36,14 @@ func TestGetUser(t *testing.T) {
 	}{
 		// happy path
 		{
-			name:       "User is returned - new procesor",
+			name:       "User is returned",
 			exp:        `{"data":{"email":"robert@test.com","id":"07a86fdf-fe39-45ea-af57-e4aa9e8068b0","name":"Robert"}}`,
-			path:       "/user/" + userUUID.String() + "?proc=new",
+			path:       "/user/" + userUUID.String(),
 			statusCode: 200,
 			store: mockUserGetter{
 				user: server.User{
 					Email: "robert@test.com",
-					ID:    userUUID,
-					Name:  "Robert",
-				},
-			},
-		},
-		{
-			name:       "User is returned - old procesor",
-			exp:        `{"data":{"email":"robert@test.com","id":"07a86fdf-fe39-45ea-af57-e4aa9e8068b0","name":"Robert"}}`,
-			path:       "/user/" + userUUID.String() + "?proc=old",
-			statusCode: 200,
-			store: mockUserGetter{
-				user: server.User{
-					Email: "robert@test.com",
-					ID:    userUUID,
+					UUID:  userUUID,
 					Name:  "Robert",
 				},
 			},
@@ -65,7 +52,7 @@ func TestGetUser(t *testing.T) {
 		{
 			name:       "User not found",
 			exp:        `{"error":"User not found"}`,
-			path:       "/user/" + userUUID.String() + "?proc=new",
+			path:       "/user/" + userUUID.String(),
 			statusCode: 404,
 			store: mockUserGetter{
 				err: server.UserNotFound,
@@ -77,7 +64,7 @@ func TestGetUser(t *testing.T) {
 		r := httptest.NewRequest("GET", tt.path, nil)
 		w := httptest.NewRecorder()
 
-		s := server.NewServer(tt.store, tt.store)
+		s := server.NewServer(tt.store)
 		s.Router().ServeHTTP(w, r)
 
 		res := w.Result()

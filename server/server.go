@@ -19,10 +19,8 @@ type DataStore interface {
 }
 
 type Server struct {
-	newStore DataStore
-	oldStore DataStore
-
-	router http.Handler
+	dataStore DataStore
+	router    http.Handler
 }
 
 type HTTPError struct {
@@ -31,8 +29,6 @@ type HTTPError struct {
 }
 
 func (e HTTPError) Error() string { return e.message }
-
-var ErrNotImplemented = HTTPError{http.StatusNotImplemented, "Endpoint not implemented by processor"}
 
 func respond(w http.ResponseWriter, r *http.Request, data any, err error, status int) {
 	type response struct {
@@ -68,7 +64,12 @@ func (s *Server) routes() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	r.Use(s.withProcParam)
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	})
 
 	r.Route("/user", func(userRoute chi.Router) {
 		userRoute.Get("/", s.handleGetUserList)
@@ -85,11 +86,8 @@ func (s *Server) routes() {
 	s.router = r
 }
 
-func NewServer(new, old DataStore) Server {
-	s := Server{
-		newStore: new,
-		oldStore: old,
-	}
+func NewServer(d DataStore) Server {
+	s := Server{dataStore: d}
 
 	s.routes()
 
