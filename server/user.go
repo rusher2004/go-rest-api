@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -9,11 +10,11 @@ import (
 
 type (
 	DeleteUserInput struct {
-		ID uuid.UUID `json:"id"`
+		UUID uuid.UUID `json:"id"`
 	}
 
 	GetUserInput struct {
-		ID uuid.UUID `json:"id"`
+		UUID uuid.UUID `json:"id"`
 	}
 
 	GetUserListInput struct{}
@@ -25,13 +26,13 @@ type (
 
 	PutUserInput struct {
 		Email string `json:"email,omitempty"`
-		ID    uuid.UUID
+		UUID  uuid.UUID
 		Name  string `json:"name,omitempty"`
 	}
 
 	User struct {
 		Email string    `json:"email"`
-		ID    uuid.UUID `json:"id"`
+		UUID  uuid.UUID `json:"id"`
 		Name  string    `json:"name"`
 	}
 )
@@ -41,9 +42,8 @@ var UserNotFound = HTTPError{http.StatusNotFound, "User not found"}
 func (s *Server) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := *ContextValue[uuid.UUID](ctx, userIDCTXKey)
-	procIface := *ContextValue[DataStore](ctx, procIfaceCTXKey)
 
-	if err := procIface.DeleteUser(ctx, DeleteUserInput{id}); err != nil {
+	if err := s.dataStore.DeleteUser(ctx, DeleteUserInput{id}); err != nil {
 		respond(w, r, nil, err, 0)
 		return
 	}
@@ -54,10 +54,14 @@ func (s *Server) handleDeleteUser(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := *ContextValue[uuid.UUID](ctx, userIDCTXKey)
-	procIface := *ContextValue[DataStore](ctx, procIfaceCTXKey)
 
-	out, err := procIface.GetUser(ctx, GetUserInput{id})
+	out, err := s.dataStore.GetUser(ctx, GetUserInput{id})
 	if err != nil {
+		if errors.Is(err, UserNotFound) {
+			respond(w, r, nil, err, http.StatusNotFound)
+			return
+		}
+
 		respond(w, r, nil, err, 0)
 		return
 	}
@@ -67,9 +71,8 @@ func (s *Server) handleGetUser(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleGetUserList(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	procIface := *ContextValue[DataStore](ctx, procIfaceCTXKey)
 
-	out, err := procIface.GetUserList(ctx, GetUserListInput{})
+	out, err := s.dataStore.GetUserList(ctx, GetUserListInput{})
 	if err != nil {
 		respond(w, r, nil, err, 0)
 		return
@@ -87,9 +90,8 @@ func (s *Server) handlePostUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	procIface := *ContextValue[DataStore](ctx, procIfaceCTXKey)
 
-	out, err := procIface.PostUser(ctx, in)
+	out, err := s.dataStore.PostUser(ctx, in)
 	if err != nil {
 		respond(w, r, nil, err, 0)
 		return
@@ -107,10 +109,9 @@ func (s *Server) handlePutUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	in.ID = *ContextValue[uuid.UUID](ctx, userIDCTXKey)
-	procIface := *ContextValue[DataStore](ctx, procIfaceCTXKey)
+	in.UUID = *ContextValue[uuid.UUID](ctx, userIDCTXKey)
 
-	out, err := procIface.PutUser(ctx, in)
+	out, err := s.dataStore.PutUser(ctx, in)
 	if err != nil {
 		respond(w, r, nil, err, 0)
 		return
